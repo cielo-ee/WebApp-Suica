@@ -11,6 +11,8 @@ use utf8;
 use DBI;
 use Text::CSV_XS;
 
+use Time::Piece;
+
 our $VERSION='0.00001';
 
 sub new{
@@ -35,7 +37,7 @@ sub init_db{
     my $dbh  = $self->{'dbh'};
     
     my @main_fields = qw/id date agency s_station s_comp s_line e_station e_comp e_line fare balance /; #CSVに含まれているフィールド
-    my @option_fields = qw/filename registration_date /;
+    my @option_fields = qw/filename registration_date update_state update_date/; #付加するフィールド
     my @fields = (@main_fields,@option_fields);
     my $fieldlist = join ',',@fields;
     $self->{'fields'} = \@fields;
@@ -54,10 +56,10 @@ sub register_csv2db{
     my @fields = @{$self->{'fields'}};
 
 
-    my ($mday,$mon,$year) = (localtime(time))[3..5];
-    $year += 1900;
-    $mon++;
-    my $date = sprintf "%d/%02d/%02d",$year,$mon,$mday;
+    my $t = localtime(time);
+
+    my $timezone = sprintf "+%02d:%02d",$t->tzoffset / 3600 ,($t->tzoffset % 3600) / 60;
+    my $date = $t->datetime.$timezone; #ISO 8601 style
     
     open my $fh,'<',$csvname or die "$!";
     my $csv = Text::CSV_XS-> new({binary => 1});
@@ -72,6 +74,7 @@ sub register_csv2db{
         #タイトル行を飛ばす
         next if($eles->{'id'} eq "ID");
 
+        #各フィールドを読んで整形する
         my $valuelist = $eles->{'id'};
         foreach my $i(1..$#fields){
             my $value = decode('UTF-8',$eles->{$fields[$i]});
