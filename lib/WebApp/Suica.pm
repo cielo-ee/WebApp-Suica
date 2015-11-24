@@ -20,7 +20,7 @@ sub new{
     my $filename = basename($params{'filename'});
     $filename =~ /^(.+?)_/;
     my $identifier = $1;
-    print $identifier;
+#    print $identifier;
     my $dbname = "$identifier.db";
     my $dbh    = DBI->connect("dbi:SQLite:dbname=$dbname");
     
@@ -69,9 +69,9 @@ sub register_csv2db{
         my $eles;
         @$eles{@fields} = @$columns;
         $eles->{'filename'} = $csvname;
-        $eles->{'registration_date'}     = $date;
-        $eles->{'update_state'}    = 0;
-        $eles->{'update_date'}     = $date;
+        $eles->{'registration_date'}  = $date;
+        $eles->{'update_state'}       = 0;
+        $eles->{'update_date'}        = $date;
         
 
         #タイトル行を飛ばす
@@ -99,9 +99,8 @@ sub register_csv2db{
     $csv->eof;
 }
 
-
-
 sub show_all_db{
+    #データベースの中身をダンプする
     my $self = shift;
     my $dbh  = $self->{'dbh'};
     my $stmt = "select * from suica order by id asc";
@@ -114,6 +113,36 @@ sub show_all_db{
         print "\n";
     }
 }
+
+
+sub check_id{
+    #idが飛んでいる所がないかチェックする
+    my $self = shift;
+    my $dbh  = $self->{'dbh'};
+    my $stmt = "select * from suica order by id asc";
+    
+    my $sth  = $dbh->prepare($stmt);
+    $sth -> execute;
+
+    my $prev_id = -1;
+    while(my @row = $sth->fetchrow_array){
+        my $id = $row[0];
+        if($prev_id < 0){
+            $prev_id = $id;
+            next;
+        }
+        $prev_id++;
+#        print "$prev_id\t$id\n";
+        if($prev_id != $id){
+            print "$prev_id is not found\n";
+            $prev_id = $id;
+        }
+    }
+}
+
+
+
+
 __END__
 
 
