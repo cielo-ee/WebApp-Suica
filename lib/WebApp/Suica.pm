@@ -70,6 +70,9 @@ sub register_csv2db{
         @$eles{@fields} = @$columns;
         $eles->{'filename'} = $csvname;
         $eles->{'registration_date'}     = $date;
+        $eles->{'update_state'}    = 0;
+        $eles->{'update_date'}     = $date;
+        
 
         #タイトル行を飛ばす
         next if($eles->{'id'} eq "ID");
@@ -80,6 +83,7 @@ sub register_csv2db{
             my $value = decode('UTF-8',$eles->{$fields[$i]});
             $value =~ s/￥|,//g if($fields[$i] eq 'fare');
             $value =~ s/￥|,//g if($fields[$i] eq 'balance');
+#            $DB::single = 1;
             $valuelist .= ",\'".$value."\'";
         }
 
@@ -88,7 +92,6 @@ sub register_csv2db{
         my $sth  = $dbh -> prepare($stmt);
         $sth -> execute;
         next if($sth->fetchrow_array);
-
         my $fieldlist = join ',',@fields;
         $dbh->do("insert into suica ($fieldlist) values ($valuelist)");
     }
