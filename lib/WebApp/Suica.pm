@@ -119,27 +119,39 @@ sub check_id{
     #idが飛んでいる所がないかチェックする
     my $self = shift;
     my $dbh  = $self->{'dbh'};
+    my @fields = @{$self->{'fields'}};
+    my %row_hash;
+    
     my $stmt = "select * from suica order by id asc";
     
     my $sth  = $dbh->prepare($stmt);
     $sth -> execute;
 
     my $prev_id = -1;
+    my $prev_balance = 0;
     while(my @row = $sth->fetchrow_array){
-        my $id = $row[0];
+        @row_hash{@fields} = @row;
+        my $id      = $row_hash{'id'};
+        my $balance = $row_hash{'balance'};
+        my $fare    = $row_hash{'fare'};
         if($prev_id < 0){
             $prev_id = $id;
+            $prev_balance = $balance;
             next;
         }
         $prev_id++;
 #        print "$prev_id\t$id\n";
         if($prev_id != $id){
             print "$prev_id is not found\n";
+            print $prev_balance - $fare."\t".$balance."\n";
+            if(($prev_balance - $fare) == $balance){
+                print "balance is OK\n";
+            }
             $prev_id = $id;
         }
+        $prev_balance = $balance;
     }
 }
-
 
 
 

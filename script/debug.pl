@@ -14,7 +14,7 @@ my $filename = shift;
 
 my $db = WebApp::Suica->new(filename => $filename);
 
-#$db->register_csv2db;
+$db->register_csv2db;
 
 $db->show_all_db;
 
