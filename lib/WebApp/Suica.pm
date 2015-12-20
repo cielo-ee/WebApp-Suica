@@ -20,26 +20,26 @@ sub new{
     my $identifier = $params{'identifier'};
     my $dbname = "$identifier.db";
     my $dbh    = DBI->connect("dbi:SQLite:dbname=$dbname");
-    
+
+    my $fields = get_fields();
+
+    my $fieldlist = join ',',@$fields;
+    #suicaが存在する場合には作成しない
+    $dbh->do("create table if not exists suica ($fieldlist,primary key(id,date))");
     bless +{
-        dbh      => $dbh,
-        fields   => undef
+        'dbh'      => $dbh,
+        'fields'   => $fields,
     },$class;
 }
 
 
-sub init_db{
-    my $self = shift;
-    my $dbh  = $self->{'dbh'};
+sub get_fields{
     
     my @main_fields = qw/id date agency s_station s_comp s_line e_station e_comp e_line fare balance /; #CSVに含まれているフィールド
     my @option_fields = qw/filename registration_date update_state update_date/; #付加するフィールド
     my @fields = (@main_fields,@option_fields);
-    my $fieldlist = join ',',@fields;
-    $self->{'fields'} = \@fields;
-    
-    $dbh->do("create table if not exists suica ($fieldlist,primary key(id,date))");
-    
+    return \@fields;
+
 }
 
 
@@ -47,7 +47,7 @@ sub register_csv2db{
     my ($self,$csvname) = @_;
 #    my $csvname = $self->{'filepath'};
     my $dbh = $self->{'dbh'};
-    $self->init_db;
+#    $self->init_db;
 
     my @fields = @{$self->{'fields'}};
 
@@ -94,6 +94,14 @@ sub register_csv2db{
 
     $csv->eof;
 }
+
+#sub get_data_from_db{
+#    my $self = shift;
+#    my $dbh  = $self->{'dbh'};
+#}
+
+
+#for debug
 
 sub show_all_db{
     #データベースの中身をダンプする
