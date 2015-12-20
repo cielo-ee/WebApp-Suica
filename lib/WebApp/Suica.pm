@@ -17,16 +17,12 @@ our $VERSION='0.00001';
 
 sub new{
     my ($class,%params) = @_;
-    my $filename = basename($params{'filename'});
-    $filename =~ /^(.+?)_/;
-    my $identifier = $1;
-#    print $identifier;
+    my $identifier = $params{'identifier'};
     my $dbname = "$identifier.db";
     my $dbh    = DBI->connect("dbi:SQLite:dbname=$dbname");
     
     bless +{
         dbh      => $dbh,
-        filepath => $params{'filename'},
         fields   => undef
     },$class;
 }
@@ -48,8 +44,8 @@ sub init_db{
 
 
 sub register_csv2db{
-    my ($self,%params) = @_;
-    my $csvname = $self->{'filepath'};
+    my ($self,$csvname) = @_;
+#    my $csvname = $self->{'filepath'};
     my $dbh = $self->{'dbh'};
     $self->init_db;
 

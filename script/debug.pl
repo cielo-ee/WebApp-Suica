@@ -11,10 +11,11 @@ use WebApp::Suica;
 use Data::Dumper;
 
 my $filename = shift;
+my $identifier = "hoge";
 
-my $db = WebApp::Suica->new(filename => $filename);
+my $db = WebApp::Suica->new(('identifier' => $identifier));
 
-$db->register_csv2db;
+$db->register_csv2db($filename);
 
 $db->show_all_db;
 
